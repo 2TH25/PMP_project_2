@@ -6,7 +6,7 @@
 
 using namespace phy;
 
-template<typename U>
+template<typename  U>
 void test_unit(const int m, const int kg, const int s, const int A, const int K, const int mol, const int cd)
 {
   EXPECT_EQ(U::metre, m);
@@ -16,6 +16,15 @@ void test_unit(const int m, const int kg, const int s, const int A, const int K,
   EXPECT_EQ(U::kelvin, K);
   EXPECT_EQ(U::mole, mol);
   EXPECT_EQ(U::candela, cd);
+}
+
+template<typename U_expected, typename R_expected = std::ratio<1>, typename U, typename R>
+void test_qty(const Qty<U, R> &q, intmax_t value)
+{
+  EXPECT_EQ(q.value, value);
+
+  EXPECT_TRUE((std::is_same_v<U, U_expected>));
+  EXPECT_TRUE((std::is_same_v<R, R_expected>));
 }
 
 TEST(TP2_unit, basic_units) {
@@ -37,6 +46,50 @@ TEST(TP2_unit, derived_units) {
   test_unit<Pascal>(-1, 1, -2, 0, 0, 0, 0);
   test_unit<Speed>(1, 0, -1, 0, 0, 0, 0);
   test_unit<Newton>(1, 1, -2, 0, 0, 0, 0);
+}
+
+TEST(TP2_qty, basic_quantites) {
+  Length q_metre;
+  test_qty<Metre>(q_metre, 0);
+
+  Length q_metre_value(42);
+  test_qty<Metre>(q_metre_value, 42);
+
+  Mass q_mass;
+  test_qty<Kilogram>(q_mass, 0);
+
+  Mass q_mass_value(42);
+  test_qty<Kilogram>(q_mass_value, 42);
+
+  Time q_time;
+  test_qty<Second>(q_time, 0);
+
+  Time q_time_value(42);
+  test_qty<Second>(q_time_value, 42);
+
+  Current q_current;
+  test_qty<Ampere>(q_current, 0);
+
+  Current q_current_value(42);
+  test_qty<Ampere>(q_current_value, 42);
+
+  Temperature q_temperature;
+  test_qty<Kelvin>(q_temperature, 0);
+
+  Temperature q_temperature_value(42);
+  test_qty<Kelvin>(q_temperature_value, 42);
+
+  Amount q_amount;
+  test_qty<Mole>(q_amount, 0);
+
+  Amount q_amount_value(42);
+  test_qty<Mole>(q_amount_value, 42);
+
+  LuminousIntensity q_intensity;
+  test_qty<Candela>(q_intensity, 0);
+
+  LuminousIntensity q_intensity_value(42);
+  test_qty<Candela>(q_intensity_value, 42);
 }
 
 int main(int argc, char* argv[])
