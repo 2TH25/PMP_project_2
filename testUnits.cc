@@ -92,6 +92,12 @@ TEST(TP2_qty, basic_quantites) {
   test_qty<Candela>(q_intensity_value, 42);
 }
 
+TEST(test, test) {
+  using namespace phy::literals;
+  auto test = 100_metres;
+  std::cout << details::castTo1(test) << "\n";
+}
+
 int main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest(&argc, argv);

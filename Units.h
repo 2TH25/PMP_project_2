@@ -51,8 +51,8 @@ namespace phy {
 
     intmax_t value;
 
-    Qty() { value = 0 };
-    Qty(intmax_t v) { value = v };
+    Qty() { value = 0; };
+    Qty(intmax_t v) { value = v; };
 
     template<typename ROther>
     Qty& operator+=(Qty<U, ROther> other);
@@ -112,19 +112,36 @@ namespace phy {
   };
 
   template<typename U, typename R1, typename R2>
-  bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2);
+  bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    return details::castTo1(q1) != details::castTo1(q2);
+  };
 
   template<typename U, typename R1, typename R2>
-  bool operator<(Qty<U, R1> q1, Qty<U, R2> q2);
+  bool operator<(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    return details::castTo1(q1) < details::castTo1(q2);
+  };
 
   template<typename U, typename R1, typename R2>
-  bool operator<=(Qty<U, R1> q1, Qty<U, R2> q2);
+  bool operator<=(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    return details::castTo1(q1) <= details::castTo1(q2);
+  };
 
   template<typename U, typename R1, typename R2>
-  bool operator>(Qty<U, R1> q1, Qty<U, R2> q2);
+  bool operator>(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    return details::castTo1(q1) > details::castTo1(q2);
+  };
 
   template<typename U, typename R1, typename R2>
-  bool operator>=(Qty<U, R1> q1, Qty<U, R2> q2);
+  bool operator>=(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    return details::castTo1(q1) >= details::castTo1(q2);
+  };
+
+  #ifdef test
 
   /*
    * Arithmetic operators
@@ -142,6 +159,7 @@ namespace phy {
   template<typename U1, typename R1, typename U2, typename R2>
   /* implementation defined */ operator/(Qty<U1, R1> q1, Qty<U2, R2> q2);
 
+  #endif
 
   /*
    * Cast function between two quantities
@@ -155,14 +173,38 @@ namespace phy {
      * Some user-defined literals
      */
 
-    inline Length operator ""_metres(unsigned long long int val);
-    inline Mass operator ""_kilograms(unsigned long long int val);
-    inline Time operator ""_seconds(unsigned long long int val);
-    inline Current operator ""_amperes(unsigned long long int val);
-    inline Temperature operator ""_kelvins(unsigned long long int val);
-    inline Amount operator ""_moles(unsigned long long int val);
-    inline LuminousIntensity operator ""_candelas(unsigned long long int val);
-    inline /* implementation defined */ operator ""_celsius(unsigned long long int val);
+    inline Length operator ""_metres(unsigned long long int val)
+    {
+      return val;
+    };
+    inline Mass operator ""_kilograms(unsigned long long int val)
+    {
+      return val;
+    };
+    inline Time operator ""_seconds(unsigned long long int val)
+    {
+      return val;
+    };
+    inline Current operator ""_amperes(unsigned long long int val)
+    {
+      return val;
+    };
+    inline Temperature operator ""_kelvins(unsigned long long int val)
+    {
+      return val;
+    };
+    inline Amount operator ""_moles(unsigned long long int val)
+    {
+      return val;
+    };
+    inline LuminousIntensity operator ""_candelas(unsigned long long int val)
+    {
+      return val;
+    };
+    inline Qty<Kelvin, std::ratio<1, 100>> operator ""_celsius(unsigned long long int val)
+    {
+      return ((val * 100) - 27315);
+    };
 
   }
 
