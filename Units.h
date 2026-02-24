@@ -165,7 +165,10 @@ namespace phy {
    * Cast function between two quantities
    */
   template<typename ResQty, typename U, typename R>
-  ResQty qtyCast(Qty<U, R> quantity);
+  ResQty qtyCast(Qty<U, R> quantity)
+  {
+    return details::castTo1(quantity) * (ResQty::Ratio::den / ResQty::Ratio::num);
+  };
 
   namespace literals {
 

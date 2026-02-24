@@ -92,10 +92,12 @@ TEST(TP2_qty, basic_quantites) {
   test_qty<Candela>(q_intensity_value, 42);
 }
 
+// TODO : enlever
 TEST(test, test) {
-  using namespace phy::literals;
-  auto test = 100_metres;
-  std::cout << details::castTo1(test) << "\n";
+  Qty<Metre, std::milli> test(999);
+  auto test2 = qtyCast<Length>(test);
+
+  std::cout << details::castTo1(test2) << " " << test2.value << "\n";
 }
 
 int main(int argc, char* argv[])
