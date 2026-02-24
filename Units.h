@@ -62,6 +62,15 @@ namespace phy {
 
   };
 
+  namespace details
+  {
+    template<class U, class R>
+    double castTo1(Qty<U, R> q)
+    {
+      return q.value * (((double) R::num) / R::den);
+    }
+  } // namespace details
+
   /*
    * Various quantities
    */
@@ -97,7 +106,10 @@ namespace phy {
    */
 
   template<typename U, typename R1, typename R2>
-  bool operator==(Qty<U, R1> q1, Qty<U, R2> q2);
+  bool operator==(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    return details::castTo1(q1) == details::castTo1(q2);
+  };
 
   template<typename U, typename R1, typename R2>
   bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2);
@@ -135,7 +147,7 @@ namespace phy {
    * Cast function between two quantities
    */
   template<typename ResQty, typename U, typename R>
-  ResQty qtyCast(Qty<U,R> quantity);
+  ResQty qtyCast(Qty<U, R> quantity);
 
   namespace literals {
 
