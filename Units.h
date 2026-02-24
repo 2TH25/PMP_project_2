@@ -141,14 +141,35 @@ namespace phy {
     return details::castTo1(q1) >= details::castTo1(q2);
   };
 
-  #ifdef test
+  /*
+   * Cast function between two quantities
+   */
+  template<typename ResQty, typename U, typename R>
+  ResQty qtyCast(Qty<U, R> quantity)
+  {
+    return details::castTo1(quantity) * (ResQty::Ratio::den / ResQty::Ratio::num);
+  };
 
   /*
    * Arithmetic operators
    */
 
   template<typename U, typename R1, typename R2>
-  /* implementation defined */ operator+(Qty<U, R1> q1, Qty<U, R2> q2);
+  auto operator+(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if (std::ratio_greater_v<R1, R2>) // Pas sur du sens, à demander
+    {
+      Qty<U, R1> res(q1.value + qtyCast<Qty<U, R1>>(q2).value);
+      return res;
+    }
+    else
+    {
+      Qty<U, R1> res(q2.value + qtyCast<Qty<U, R2>>(q1).value);
+      return res;
+    }
+  };
+
+  #ifdef test
 
   template<typename U, typename R1, typename R2>
   /* implementation defined */ operator-(Qty<U, R1> q1, Qty<U, R2> q2);
@@ -160,15 +181,6 @@ namespace phy {
   /* implementation defined */ operator/(Qty<U1, R1> q1, Qty<U2, R2> q2);
 
   #endif
-
-  /*
-   * Cast function between two quantities
-   */
-  template<typename ResQty, typename U, typename R>
-  ResQty qtyCast(Qty<U, R> quantity)
-  {
-    return details::castTo1(quantity) * (ResQty::Ratio::den / ResQty::Ratio::num);
-  };
 
   namespace literals {
 

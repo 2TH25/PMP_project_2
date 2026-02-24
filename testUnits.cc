@@ -94,10 +94,10 @@ TEST(TP2_qty, basic_quantites) {
 
 // TODO : enlever
 TEST(test, test) {
-  Qty<Metre, std::milli> test(999);
-  auto test2 = qtyCast<Length>(test);
-
-  std::cout << details::castTo1(test2) << " " << test2.value << "\n";
+  using namespace phy::literals;
+  Qty<Metre, std::deci> test(25);
+  auto res = 10_metres + test;
+  std::cout << res.value << "\n";
 }
 
 int main(int argc, char* argv[])
