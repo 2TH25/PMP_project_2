@@ -135,7 +135,7 @@ namespace phy {
    * Cast function between two quantities
    */
   template<typename ResQty, typename U, typename R>
-  ResQty qtyCast(Qty<U,R>);
+  ResQty qtyCast(Qty<U,R> quantity);
 
   namespace literals {
 
