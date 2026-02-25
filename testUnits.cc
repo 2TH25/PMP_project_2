@@ -5,8 +5,9 @@
 #include <gtest/gtest.h>
 
 using namespace phy;
+using namespace phy::literals;
 
-template<typename  U>
+template<typename U>
 void test_unit(const int m, const int kg, const int s, const int A, const int K, const int mol, const int cd)
 {
   EXPECT_EQ(U::metre, m);
@@ -19,7 +20,7 @@ void test_unit(const int m, const int kg, const int s, const int A, const int K,
 }
 
 template<typename U_expected, typename R_expected = std::ratio<1>, typename U, typename R>
-void test_qty(const Qty<U, R> &q, intmax_t value)
+void test_qty(const Qty<U, R> &q, const intmax_t value)
 {
   EXPECT_EQ(q.value, value);
 
@@ -27,7 +28,33 @@ void test_qty(const Qty<U, R> &q, intmax_t value)
   EXPECT_TRUE((std::is_same_v<R, R_expected>));
 }
 
-TEST(TP2_unit, basic_units) {
+template<typename U>
+void test_comparison()
+{
+  Qty<U, std::deci> lower(10);
+  Qty<U, std::milli> same(10000);
+  Qty<U> normal(10);
+  Qty<U, std::deca> greater(10);
+
+  EXPECT_LT(lower, normal);
+  EXPECT_LT(lower, same);
+  EXPECT_LE(lower, normal);
+  EXPECT_LE(lower, same);
+  EXPECT_LE(lower, lower);
+  EXPECT_EQ(lower, lower);
+  EXPECT_LE(same, normal);
+  EXPECT_EQ(same, normal);
+  EXPECT_GE(same, normal);
+  EXPECT_GT(greater, normal);
+  EXPECT_GT(greater, same);
+  EXPECT_GE(greater, normal);
+  EXPECT_GE(greater, normal);
+  EXPECT_GE(greater, greater);
+  EXPECT_EQ(greater, greater);
+}
+
+TEST(TP2_unit, basic_units)
+{
   test_unit<Metre>(1, 0, 0, 0, 0, 0, 0);
   test_unit<Kilogram>(0, 1, 0, 0, 0, 0, 0);
   test_unit<Second>(0, 0, 1, 0, 0, 0, 0);
@@ -38,7 +65,8 @@ TEST(TP2_unit, basic_units) {
   test_unit<Radian>(0, 0, 0, 0, 0, 0, 0);
 }
 
-TEST(TP2_unit, derived_units) {
+TEST(TP2_unit, derived_units)
+{
   test_unit<Volt>(2, 1, -3, -1, 0, 0, 0);
   test_unit<Ohm>(2, 1, -3, -2, 0, 0, 0);
   test_unit<Watt>(2, 1, -3, 0, 0, 0, 0);
@@ -48,7 +76,8 @@ TEST(TP2_unit, derived_units) {
   test_unit<Newton>(1, 1, -2, 0, 0, 0, 0);
 }
 
-TEST(TP2_qty, basic_quantites) {
+TEST(TP2_qty, basic_quantites)
+{
   Length q_metre;
   test_qty<Metre>(q_metre, 0);
 
@@ -90,6 +119,108 @@ TEST(TP2_qty, basic_quantites) {
 
   LuminousIntensity q_intensity_value(42);
   test_qty<Candela>(q_intensity_value, 42);
+}
+
+TEST(TP2_qty, derived_quantites)
+{
+  Frequency q_frequency;
+  test_qty<Hertz>(q_frequency, 0);
+
+  Frequency q_frequency_value(42);
+  test_qty<Hertz>(q_frequency_value, 42);
+
+  Force q_force;
+  test_qty<Newton>(q_force, 0);
+
+  Force q_force_value(42);
+  test_qty<Newton>(q_force_value, 42);
+
+  MeterSecond q_meter_second;
+  test_qty<Speed>(q_meter_second, 0);
+
+  MeterSecond q_meter_second_value(42);
+  test_qty<Speed>(q_meter_second_value, 42);
+
+  ElectricPotential q_potential;
+  test_qty<Volt>(q_potential, 0);
+
+  ElectricPotential q_potential_value(42);
+  test_qty<Volt>(q_potential_value, 42);
+
+  ElectricalResistance q_resistance;
+  test_qty<Ohm>(q_resistance, 0);
+
+  ElectricalResistance q_resistance_value(42);
+  test_qty<Ohm>(q_resistance_value, 42);
+
+  Power q_power;
+  test_qty<Watt>(q_power, 0);
+
+  Power q_power_value(42);
+  test_qty<Watt>(q_power_value, 42);
+
+  Pressure q_pressure;
+  test_qty<Pascal>(q_pressure, 0);
+
+  Pressure q_pressure_value(42);
+  test_qty<Pascal>(q_pressure_value, 42);
+}
+
+TEST(TP2_qty, weird_quantites)
+{
+  Mile q_mile;
+  test_qty<Metre, std::ratio<16093444, 10000>>(q_mile, 0);
+
+  Mile q_mile_value(42);
+  test_qty<Metre, std::ratio<16093444, 10000>>(q_mile_value, 42);
+
+  Yard q_yard;
+  test_qty<Metre, std::ratio<91440000, 100000000>>(q_yard, 0);
+
+  Yard q_yard_value(42);
+  test_qty<Metre, std::ratio<91440000, 100000000>>(q_yard_value, 42);
+
+  Foot q_foot;
+  test_qty<Metre, std::ratio<32808400, 10000000>>(q_foot, 0);
+
+  Foot q_foot_value(42);
+  test_qty<Metre, std::ratio<32808400, 10000000>>(q_foot_value, 42);
+
+  Inch q_inch;
+  test_qty<Metre, std::ratio<39370094, 1000000>>(q_inch, 0);
+
+  Inch q_inch_value(42);
+  test_qty<Metre, std::ratio<39370094, 1000000>>(q_inch_value, 42);
+
+  Knot q_knot;
+  test_qty<Speed, std::ratio<19438400, 10000000>>(q_knot, 0);
+
+  Knot q_knot_value(42);
+  test_qty<Speed, std::ratio<19438400, 10000000>>(q_knot_value, 42);
+}
+
+TEST(TP2_comparison, basic_comparison)
+{
+  test_comparison<Metre>();
+  test_comparison<Kilogram>();
+  test_comparison<Second>();
+  test_comparison<Ampere>();
+  test_comparison<Kelvin>();
+  test_comparison<Mole>();
+  test_comparison<Candela>();
+}
+
+TEST(TP2_literals, basic_literals)
+{
+  EXPECT_EQ(42_metres, Length(42));
+  EXPECT_EQ(42_kilograms, Mass(42));
+  EXPECT_EQ(42_seconds, Time(42));
+  EXPECT_EQ(42_amperes, Current(42));
+  EXPECT_EQ(42_kelvins, Temperature(42));
+  EXPECT_EQ(42_moles, Amount(42));
+  EXPECT_EQ(42_candelas, LuminousIntensity(42));
+  Qty<Kelvin, std::ratio<1, 100>> kelvin(31515);
+  EXPECT_EQ(42_celsius, kelvin);
 }
 
 // TODO : enlever

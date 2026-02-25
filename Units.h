@@ -67,7 +67,7 @@ namespace phy {
     template<class U, class R>
     double castTo1(Qty<U, R> q)
     {
-      return q.value * (((double) R::num) / R::den);
+      return q.value * (static_cast<double>(R::num) / R::den);
     }
   } // namespace details
 
@@ -155,9 +155,9 @@ namespace phy {
    */
 
   template<typename U, typename R1, typename R2>
-  auto operator+(Qty<U, R1> q1, Qty<U, R2> q2)
+  std::conditional_t<std::ratio_less_v<R1, R2>, Qty<U, R1>, Qty<U, R2>> operator+(Qty<U, R1> q1, Qty<U, R2> q2)
   {
-    if (std::ratio_greater_v<R1, R2>) // Pas sur du sens, à demander
+    if constexpr (std::ratio_less_v<R1, R2>)
     {
       Qty<U, R1> res(q1.value + qtyCast<Qty<U, R1>>(q2).value);
       return res;
@@ -167,7 +167,7 @@ namespace phy {
       Qty<U, R2> res(q2.value + qtyCast<Qty<U, R2>>(q1).value);
       return res;
     }
-  };
+  }
 
   #ifdef test
 
@@ -190,35 +190,35 @@ namespace phy {
 
     inline Length operator ""_metres(unsigned long long int val)
     {
-      return val;
+      return {static_cast<intmax_t>(val)};
     };
     inline Mass operator ""_kilograms(unsigned long long int val)
     {
-      return val;
+      return {static_cast<intmax_t>(val)};
     };
     inline Time operator ""_seconds(unsigned long long int val)
     {
-      return val;
+      return {static_cast<intmax_t>(val)};
     };
     inline Current operator ""_amperes(unsigned long long int val)
     {
-      return val;
+      return {static_cast<intmax_t>(val)};
     };
     inline Temperature operator ""_kelvins(unsigned long long int val)
     {
-      return val;
+      return {static_cast<intmax_t>(val)};
     };
     inline Amount operator ""_moles(unsigned long long int val)
     {
-      return val;
+      return {static_cast<intmax_t>(val)};
     };
     inline LuminousIntensity operator ""_candelas(unsigned long long int val)
     {
-      return val;
+      return {static_cast<intmax_t>(val)};
     };
     inline Qty<Kelvin, std::ratio<1, 100>> operator ""_celsius(unsigned long long int val)
     {
-      return ((val * 100) - 27315);
+      return {static_cast<intmax_t>(val * 100 + 27315)};
     };
 
   }
