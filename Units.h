@@ -164,7 +164,7 @@ namespace phy {
     }
     else
     {
-      Qty<U, R1> res(q2.value + qtyCast<Qty<U, R2>>(q1).value);
+      Qty<U, R2> res(q2.value + qtyCast<Qty<U, R2>>(q1).value);
       return res;
     }
   };
