@@ -55,10 +55,17 @@ namespace phy {
     Qty(intmax_t v) { value = v; };
 
     template<typename ROther>
-    Qty& operator+=(Qty<U, ROther> other);
+    Qty& operator+=(Qty<U, ROther> other) {
+      *this = *this + other;
+      return *this;
+    }
 
     template<typename ROther>
-    Qty& operator-=(Qty<U, ROther> other);
+    Qty& operator-=(Qty<U, ROther> other)
+    {
+      *this = *this - other;
+      return *this;
+    }
 
   };
 
@@ -67,8 +74,30 @@ namespace phy {
     template<class U, class R>
     double castTo1(Qty<U, R> q)
     {
-      return q.value * (static_cast<double>(R::num) / R::den);
+      return q.value * static_cast<double>(R::num) / R::den;
     }
+
+    template<class U1, class U2>
+    using multUnit = Unit<
+      U1::metre + U2::metre,
+      U1::kilogram + U2::kilogram,
+      U1::second + U2::second,
+      U1::ampere + U2::ampere,
+      U1::kelvin + U2::kelvin,
+      U1::mole + U2::mole,
+      U1::candela + U2::candela
+    >;
+
+    template<class U1, class U2>
+    using divUnit = Unit<
+      U1::metre - U2::metre,
+      U1::kilogram - U2::kilogram,
+      U1::second - U2::second,
+      U1::ampere - U2::ampere,
+      U1::kelvin - U2::kelvin,
+      U1::mole - U2::mole,
+      U1::candela - U2::candela
+    >;
   } // namespace details
 
   /*
@@ -147,7 +176,7 @@ namespace phy {
   template<typename ResQty, typename U, typename R>
   ResQty qtyCast(Qty<U, R> quantity)
   {
-    return details::castTo1(quantity) * (ResQty::Ratio::den / ResQty::Ratio::num);
+    return details::castTo1(quantity) * ResQty::Ratio::den / ResQty::Ratio::num;
   };
 
   /*
@@ -169,18 +198,31 @@ namespace phy {
     }
   }
 
-  #ifdef test
-
   template<typename U, typename R1, typename R2>
-  /* implementation defined */ operator-(Qty<U, R1> q1, Qty<U, R2> q2);
+  std::conditional_t<std::ratio_less_v<R1, R2>, Qty<U, R1>, Qty<U, R2>> operator-(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if constexpr (std::ratio_less_v<R1, R2>)
+    {
+      return {q1.value - qtyCast<Qty<U, R1>>(q2).value};
+    }
+    else
+    {
+      return {qtyCast<Qty<U, R2>>(q1).value - q2.value};
+    }
+  }
 
   template<typename U1, typename R1, typename U2, typename R2>
-  /* implementation defined */ operator*(Qty<U1, R1> q1, Qty<U2, R2> q2);
+  Qty<details::multUnit<U1, U2>, std::ratio_multiply<R1, R2>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
+  {
+    return {q1.value * q2.value};
+  }
 
+  // TODO: Peut être trouvé mieux, mais je ne vois pas comment faire pour garder la précision sans multiplier par un gros ratio
   template<typename U1, typename R1, typename U2, typename R2>
-  /* implementation defined */ operator/(Qty<U1, R1> q1, Qty<U2, R2> q2);
-
-  #endif
+  Qty<details::divUnit<U1, U2>, std::ratio_multiply<std::ratio_divide<R1, R2>, std::ratio<1, 100000000>>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2)
+  {
+    return {q1.value * 100000000 / q2.value};
+  }
 
   namespace literals {
 
