@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <ratio>
+#include <stdexcept>
 
 namespace phy {
 
@@ -41,40 +42,12 @@ namespace phy {
   using Speed               = Unit<1, 0, -1, 0, 0, 0, 0>;
   using Newton              = Unit<1, 1, -2, 0, 0, 0, 0>;
 
-  /*
-   * A quantity is a value associated with a unit and a ratio
-   */
-  template<class U, class R = std::ratio<1>>
-  struct Qty {
-    using Unit = U;
-    using Ratio = R;
-
-    intmax_t value;
-
-    Qty() { value = 0; };
-    Qty(intmax_t v) { value = v; };
-
-    template<typename ROther>
-    Qty& operator+=(Qty<U, ROther> other) {
-      *this = *this + other;
-      return *this;
-    }
-
-    template<typename ROther>
-    Qty& operator-=(Qty<U, ROther> other)
-    {
-      *this = *this - other;
-      return *this;
-    }
-
-  };
-
   namespace details
   {
-    template<class U, class R>
-    double castTo1(Qty<U, R> q)
+    template<class Q>
+    double castTo1(Q q)
     {
-      return q.value * static_cast<double>(R::num) / R::den;
+      return q.value * static_cast<double>(Q::Ratio::num) / Q::Ratio::den;
     }
 
     template<class U1, class U2>
@@ -99,6 +72,34 @@ namespace phy {
       U1::candela - U2::candela
     >;
   } // namespace details
+
+  /*
+   * A quantity is a value associated with a unit and a ratio
+   */
+  template<class U, class R = std::ratio<1>>
+  struct Qty {
+    using Unit = U;
+    using Ratio = R;
+
+    intmax_t value;
+
+    Qty() { value = 0; };
+    Qty(intmax_t v) { value = v; };
+
+    template<typename ROther>
+    Qty& operator+=(Qty<U, ROther> other) {
+      value += details::castTo1(other) * R::den / R::num;
+      return *this;
+    }
+
+    template<typename ROther>
+    Qty& operator-=(Qty<U, ROther> other)
+    {
+      value -= details::castTo1(other) * R::den / R::num;
+      return *this;
+    }
+
+  };
 
   /*
    * Various quantities
@@ -176,6 +177,7 @@ namespace phy {
   template<typename ResQty, typename U, typename R>
   ResQty qtyCast(Qty<U, R> quantity)
   {
+    if (!std::is_same_v<typename ResQty::Unit, U>) throw std::runtime_error("Not same Units");
     return details::castTo1(quantity) * ResQty::Ratio::den / ResQty::Ratio::num;
   };
 
@@ -219,7 +221,7 @@ namespace phy {
 
   // TODO: Peut être trouvé mieux, mais je ne vois pas comment faire pour garder la précision sans multiplier par un gros ratio
   template<typename U1, typename R1, typename U2, typename R2>
-  Qty<details::divUnit<U1, U2>, std::ratio_multiply<std::ratio_divide<R1, R2>, std::ratio<1, 100000000>>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2)
+  Qty<details::divUnit<U1, U2>, std::ratio_multiply<std::ratio_divide<R1, R2>, std::ratio<1, 100000000>>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2) // QU? : demander pour les chiffres significatifs
   {
     return {q1.value * 100000000 / q2.value};
   }

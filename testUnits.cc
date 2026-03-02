@@ -7,6 +7,12 @@
 using namespace phy;
 using namespace phy::literals;
 
+template<class U, class R>
+double castTo1(Qty<U, R> q)
+{
+  return q.value * static_cast<double>(R::num) / R::den;
+}
+
 template<typename U>
 void test_unit(const int m, const int kg, const int s, const int A, const int K, const int mol, const int cd)
 {
@@ -223,38 +229,48 @@ TEST(TP2_literals, basic_literals)
   EXPECT_EQ(42_celsius, kelvin);
 }
 
+TEST(TP2_qtyCast, notSameU)
+{
+  Qty<Second, std::deca> s(10);
+  EXPECT_THROW(qtyCast<Length>(s);, std::runtime_error);
+}
+
 // TODO : enlever
 TEST(test, test) {
-  using namespace phy::literals;
-  Qty<Metre, std::deci> test(25);
-  auto res_add = 10_metres + test;
-  std::cout << res_add.value << "\n";
+  Qty<Metre> m(7);
+  Qty<Metre, std::milli> mm(10);
+  m += mm;
+  std::cout << castTo1(m) << "\n";
+  // using namespace phy::literals;
+  // Qty<Metre, std::deci> test(25);
+  // auto res_add = 10_metres + test;
+  // std::cout << res_add.value << "\n";
 
-  auto res_sub = 10_metres - test;
-  std::cout << res_sub.value << "\n";
+  // auto res_sub = 10_metres - test;
+  // std::cout << res_sub.value << "\n";
 
-  auto res_mult = 10_metres * test;
-  std::cout << res_mult.value << "\n";
+  // auto res_mult = 10_metres * test;
+  // std::cout << res_mult.value << "\n";
 
-  auto res_div = 10_metres / test;
-  std::cout << res_div.value << "\n";
+  // auto res_div = 10_metres / test;
+  // std::cout << res_div.value << "\n";
 
-  auto res_mult_test = 2000_metres * 3000_metres;
-  std::cout << res_mult_test.value << "\n";
+  // auto res_mult_test = 2000_metres * 3000_metres;
+  // std::cout << res_mult_test.value << "\n";
 
 
-  auto test_mult_1 = Qty<Metre>(5);
-  auto test_mult_2 = Qty<Second>(3);
-  auto res_mult_test_ratio = test_mult_1 / test_mult_2;
-  std::cout << res_mult_test_ratio.value << "\n";
-  auto res_1 = details::castTo1(res_mult_test_ratio);
-  std::cout << res_1 << "\n";
+  // auto test_mult_1 = Qty<Metre>(5);
+  // auto test_mult_2 = Qty<Second>(3);
+  // auto res_mult_test_ratio = test_mult_1 / test_mult_2;
+  // std::cout << res_mult_test_ratio.value << "\n";
+  // auto res_1 = details::castTo1(res_mult_test_ratio);
+  // std::cout << res_1 << "\n";
 
-  Qty<Metre> test_add_operator_1(5);
-  test_add_operator_1 += test_add_operator_1;
-  std::cout << test_add_operator_1.value << "\n";
-  test_add_operator_1 -= test_add_operator_1;
-  std::cout << test_add_operator_1.value << "\n";
+  // Qty<Metre> test_add_operator_1(5);
+  // test_add_operator_1 += test_add_operator_1;
+  // std::cout << test_add_operator_1.value << "\n";
+  // test_add_operator_1 -= test_add_operator_1;
+  // std::cout << test_add_operator_1.value << "\n";
 }
 
 int main(int argc, char* argv[])
