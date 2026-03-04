@@ -7,13 +7,27 @@
 using namespace phy;
 using namespace phy::literals;
 
-template<class U, class R>
+using KMeterHours = Qty<Speed, std::ratio<1000, 3600>>;
+
+namespace phy
+{
+  template <typename U, typename R>
+  void PrintTo(const Qty<U, R> &q, std::ostream *os)
+  {
+    *os
+        << "(value: " << q.value
+        << " ratio: " << R::num << "/" << R::den << ")";
+  }
+}
+
+// TODO : essayer d'éviter dans les tests (préférer == et !=)
+template <class U, class R>
 double castTo1(Qty<U, R> q)
 {
   return q.value * static_cast<double>(R::num) / R::den;
 }
 
-template<typename U>
+template <typename U>
 void test_unit(const int m, const int kg, const int s, const int A, const int K, const int mol, const int cd)
 {
   EXPECT_EQ(U::metre, m);
@@ -25,7 +39,7 @@ void test_unit(const int m, const int kg, const int s, const int A, const int K,
   EXPECT_EQ(U::candela, cd);
 }
 
-template<typename U_expected, typename R_expected = std::ratio<1>, typename U, typename R>
+template <typename U_expected, typename R_expected = std::ratio<1>, typename U, typename R>
 void test_qty(const Qty<U, R> &q, const intmax_t value)
 {
   EXPECT_EQ(q.value, value);
@@ -34,7 +48,7 @@ void test_qty(const Qty<U, R> &q, const intmax_t value)
   EXPECT_TRUE((std::is_same_v<R, R_expected>));
 }
 
-template<typename U>
+template <typename U>
 void test_comparison()
 {
   Qty<U, std::deci> lower(10);
@@ -43,7 +57,7 @@ void test_comparison()
   Qty<U, std::deca> greater(10);
 
   EXPECT_LT(lower, normal);
-  EXPECT_LT(lower, same);
+  EXPECT_TRUE(lower < same);
   EXPECT_LE(lower, normal);
   EXPECT_LE(lower, same);
   EXPECT_LE(lower, lower);
@@ -175,10 +189,10 @@ TEST(TP2_qty, derived_quantites)
 TEST(TP2_qty, weird_quantites)
 {
   Mile q_mile;
-  test_qty<Metre, std::ratio<16093444, 10000>>(q_mile, 0);
+  test_qty<Metre, std::ratio<16093440, 10000>>(q_mile, 0);
 
   Mile q_mile_value(42);
-  test_qty<Metre, std::ratio<16093444, 10000>>(q_mile_value, 42);
+  test_qty<Metre, std::ratio<16093440, 10000>>(q_mile_value, 42);
 
   Yard q_yard;
   test_qty<Metre, std::ratio<91440000, 100000000>>(q_yard, 0);
@@ -187,22 +201,22 @@ TEST(TP2_qty, weird_quantites)
   test_qty<Metre, std::ratio<91440000, 100000000>>(q_yard_value, 42);
 
   Foot q_foot;
-  test_qty<Metre, std::ratio<32808400, 10000000>>(q_foot, 0);
+  test_qty<Metre, std::ratio<30480000, 100000000>>(q_foot, 0);
 
   Foot q_foot_value(42);
-  test_qty<Metre, std::ratio<32808400, 10000000>>(q_foot_value, 42);
+  test_qty<Metre, std::ratio<30480000, 100000000>>(q_foot_value, 42);
 
   Inch q_inch;
-  test_qty<Metre, std::ratio<39370094, 1000000>>(q_inch, 0);
+  test_qty<Metre, std::ratio<25400000, 1000000000>>(q_inch, 0);
 
   Inch q_inch_value(42);
-  test_qty<Metre, std::ratio<39370094, 1000000>>(q_inch_value, 42);
+  test_qty<Metre, std::ratio<25400000, 1000000000>>(q_inch_value, 42);
 
   Knot q_knot;
-  test_qty<Speed, std::ratio<19438400, 10000000>>(q_knot, 0);
+  test_qty<Speed, std::ratio<51444444, 100000000>>(q_knot, 0);
 
   Knot q_knot_value(42);
-  test_qty<Speed, std::ratio<19438400, 10000000>>(q_knot_value, 42);
+  test_qty<Speed, std::ratio<51444444, 100000000>>(q_knot_value, 42);
 }
 
 TEST(TP2_comparison, basic_comparison)
@@ -229,14 +243,47 @@ TEST(TP2_literals, basic_literals)
   EXPECT_EQ(42_celsius, kelvin);
 }
 
-TEST(TP2_qtyCast, notSameU)
+TEST(TP2_qtyCast, not_same_U)
 {
   Qty<Second, std::deca> s(10);
   EXPECT_THROW(qtyCast<Length>(s);, std::runtime_error);
 }
 
+TEST(TP2_mult, result_wth_other_type)
+{
+  Qty<Metre, std::ratio<100>> a(1);
+  Qty<Metre> b(100);
+  auto test = a * b;
+  Qty<Unit<2, 0, 0, 0, 0, 0, 0>> test2(1);
+  EXPECT_EQ(test, test2);
+}
+
+TEST(TP2_mult, result_wth_other_type_2)
+{
+  auto test = 100000_metres * 3600_seconds;
+  Qty<Unit<1, 0, 1, 0, 0, 0, 0>> test2(360000000);
+  EXPECT_EQ(test, test2);
+}
+
+TEST(TP2_div, result_wth_other_type)
+{
+  Mile a(1);
+  Yard b(1760);
+  auto test = a / b;
+  std::cout << test.value << "\n";
+  Qty<Unit<0, 0, 0, 0, 0, 0, 0>> test2(1);
+  EXPECT_EQ(test, test2);
+}
+
+TEST(TP2_div, result_wth_other_type_2)
+{
+  auto speed = 100000_metres / 3600_seconds;
+  EXPECT_EQ(speed, KMeterHours(100));
+}
+
 // TODO : enlever
-TEST(test, test) {
+TEST(test, test)
+{
   Qty<Metre> m(7);
   Qty<Metre, std::milli> mm(10);
   m += mm;
@@ -258,7 +305,6 @@ TEST(test, test) {
   // auto res_mult_test = 2000_metres * 3000_metres;
   // std::cout << res_mult_test.value << "\n";
 
-
   // auto test_mult_1 = Qty<Metre>(5);
   // auto test_mult_2 = Qty<Second>(3);
   // auto res_mult_test_ratio = test_mult_1 / test_mult_2;
@@ -273,7 +319,7 @@ TEST(test, test) {
   // std::cout << test_add_operator_1.value << "\n";
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

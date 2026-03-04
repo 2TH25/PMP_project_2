@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <ratio>
 #include <stdexcept>
+#include <iostream>
+#include <iomanip>
 
 namespace phy {
 
@@ -44,12 +46,6 @@ namespace phy {
 
   namespace details
   {
-    template<class Q>
-    double castTo1(Q q)
-    {
-      return q.value * static_cast<double>(Q::Ratio::num) / Q::Ratio::den;
-    }
-
     template<class U1, class U2>
     using multUnit = Unit<
       U1::metre + U2::metre,
@@ -88,14 +84,14 @@ namespace phy {
 
     template<typename ROther>
     Qty& operator+=(Qty<U, ROther> other) {
-      value += details::castTo1(other) * R::den / R::num;
+      value += (other.value * ROther::num * R::den) / (ROther::den * R::num);
       return *this;
     }
 
     template<typename ROther>
     Qty& operator-=(Qty<U, ROther> other)
     {
-      value -= details::castTo1(other) * R::den / R::num;
+      value -= (other.value * ROther::num * R::den) / (ROther::den * R::num);
       return *this;
     }
 
@@ -125,51 +121,11 @@ namespace phy {
    * Some weird quantities
    */
 
-  using Mile                  = Qty<Metre, std::ratio<16093444, 10000>>;
+  using Mile                  = Qty<Metre, std::ratio<16093440, 10000>>;
   using Yard                  = Qty<Metre, std::ratio<91440000, 100000000>>;
-  using Foot                  = Qty<Metre, std::ratio<32808400, 10000000>>;
-  using Inch                  = Qty<Metre, std::ratio<39370094, 1000000>>;
-  using Knot                  = Qty<Speed, std::ratio<19438400, 10000000>>;
-
-  /*
-   * Comparison operators
-   */
-
-  template<typename U, typename R1, typename R2>
-  bool operator==(Qty<U, R1> q1, Qty<U, R2> q2)
-  {
-    return details::castTo1(q1) == details::castTo1(q2);
-  };
-
-  template<typename U, typename R1, typename R2>
-  bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2)
-  {
-    return details::castTo1(q1) != details::castTo1(q2);
-  };
-
-  template<typename U, typename R1, typename R2>
-  bool operator<(Qty<U, R1> q1, Qty<U, R2> q2)
-  {
-    return details::castTo1(q1) < details::castTo1(q2);
-  };
-
-  template<typename U, typename R1, typename R2>
-  bool operator<=(Qty<U, R1> q1, Qty<U, R2> q2)
-  {
-    return details::castTo1(q1) <= details::castTo1(q2);
-  };
-
-  template<typename U, typename R1, typename R2>
-  bool operator>(Qty<U, R1> q1, Qty<U, R2> q2)
-  {
-    return details::castTo1(q1) > details::castTo1(q2);
-  };
-
-  template<typename U, typename R1, typename R2>
-  bool operator>=(Qty<U, R1> q1, Qty<U, R2> q2)
-  {
-    return details::castTo1(q1) >= details::castTo1(q2);
-  };
+  using Foot                  = Qty<Metre, std::ratio<30480000, 100000000>>;
+  using Inch                  = Qty<Metre, std::ratio<25400000, 1000000000>>;
+  using Knot                  = Qty<Speed, std::ratio<51444444, 100000000>>;
 
   /*
    * Cast function between two quantities
@@ -178,7 +134,65 @@ namespace phy {
   ResQty qtyCast(Qty<U, R> quantity)
   {
     if (!std::is_same_v<typename ResQty::Unit, U>) throw std::runtime_error("Not same Units");
-    return details::castTo1(quantity) * ResQty::Ratio::den / ResQty::Ratio::num;
+    return (quantity.value * R::num * ResQty::Ratio::den) / (R::den * ResQty::Ratio::num);
+  };
+
+  /*
+   * Comparison operators
+   */
+
+  template<typename U, typename R1, typename R2>
+  bool operator==(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if constexpr (std::ratio_less_v<R1, R2>)
+      return q1.value == qtyCast<Qty<U, R1>>(q2).value;
+
+    return qtyCast<Qty<U, R2>>(q1).value == q2.value;
+  };
+
+  template<typename U, typename R1, typename R2>
+  bool operator!=(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if constexpr (std::ratio_less_v<R1, R2>)
+      return q1.value != qtyCast<Qty<U, R1>>(q2).value;
+
+    return qtyCast<Qty<U, R2>>(q1).value != q2.value;
+  };
+
+  template<typename U, typename R1, typename R2>
+  bool operator<(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if constexpr (std::ratio_less_v<R1, R2>)
+      return q1.value < qtyCast<Qty<U, R1>>(q2).value;
+
+    return qtyCast<Qty<U, R2>>(q1).value < q2.value;
+  };
+
+  template<typename U, typename R1, typename R2>
+  bool operator<=(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if constexpr (std::ratio_less_v<R1, R2>)
+      return q1.value <= qtyCast<Qty<U, R1>>(q2).value;
+
+    return qtyCast<Qty<U, R2>>(q1).value <= q2.value;
+  };
+
+  template<typename U, typename R1, typename R2>
+  bool operator>(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if constexpr (std::ratio_less_v<R1, R2>)
+      return q1.value > qtyCast<Qty<U, R1>>(q2).value;
+
+    return qtyCast<Qty<U, R2>>(q1).value > q2.value;
+  };
+
+  template<typename U, typename R1, typename R2>
+  bool operator>=(Qty<U, R1> q1, Qty<U, R2> q2)
+  {
+    if constexpr (std::ratio_less_v<R1, R2>)
+      return q1.value >= qtyCast<Qty<U, R1>>(q2).value;
+      
+    return qtyCast<Qty<U, R2>>(q1).value >= q2.value;
   };
 
   /*
@@ -193,37 +207,34 @@ namespace phy {
       Qty<U, R1> res(q1.value + qtyCast<Qty<U, R1>>(q2).value);
       return res;
     }
-    else
-    {
-      Qty<U, R2> res(q2.value + qtyCast<Qty<U, R2>>(q1).value);
-      return res;
-    }
+    Qty<U, R2> res(q2.value + qtyCast<Qty<U, R2>>(q1).value);
+    return res;
   }
 
   template<typename U, typename R1, typename R2>
   std::conditional_t<std::ratio_less_v<R1, R2>, Qty<U, R1>, Qty<U, R2>> operator-(Qty<U, R1> q1, Qty<U, R2> q2)
   {
     if constexpr (std::ratio_less_v<R1, R2>)
-    {
       return {q1.value - qtyCast<Qty<U, R1>>(q2).value};
-    }
-    else
-    {
-      return {qtyCast<Qty<U, R2>>(q1).value - q2.value};
-    }
+
+    return {qtyCast<Qty<U, R2>>(q1).value - q2.value};
   }
 
   template<typename U1, typename R1, typename U2, typename R2>
-  Qty<details::multUnit<U1, U2>, std::ratio_multiply<R1, R2>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
+  Qty<details::multUnit<U1, U2>, std::conditional_t<std::ratio_less_v<R1, R2>, std::ratio_divide<R1, R2>, std::ratio_divide<R2, R1>>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
   {
     return {q1.value * q2.value};
   }
 
-  // TODO: Peut être trouvé mieux, mais je ne vois pas comment faire pour garder la précision sans multiplier par un gros ratio
   template<typename U1, typename R1, typename U2, typename R2>
-  Qty<details::divUnit<U1, U2>, std::ratio_multiply<std::ratio_divide<R1, R2>, std::ratio<1, 100000000>>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2) // QU? : demander pour les chiffres significatifs
+  Qty<details::divUnit<U1, U2>, std::ratio<1, R1::den * R2::num>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2)
   {
-    return {q1.value * 100000000 / q2.value};
+    // if constexpr (std::ratio_less_equal_v<R1, R2>)
+    //   return {q1.value / q2.value};
+
+    // return {q2.value / q1.value};
+
+    return (q1.value * R1::num * R2::den) / q2.value;
   }
 
   namespace literals {
