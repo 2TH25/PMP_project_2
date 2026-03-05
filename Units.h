@@ -221,7 +221,7 @@ namespace phy {
   }
 
   template<typename U1, typename R1, typename U2, typename R2>
-  Qty<details::multUnit<U1, U2>, std::conditional_t<std::ratio_less_v<R1, R2>, std::ratio_divide<R1, R2>, std::ratio_divide<R2, R1>>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
+  Qty<details::multUnit<U1, U2>, std::ratio<R1::num * R2::num, R1::den * R2::den>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
   {
     return {q1.value * q2.value};
   }
@@ -229,11 +229,6 @@ namespace phy {
   template<typename U1, typename R1, typename U2, typename R2>
   Qty<details::divUnit<U1, U2>, std::ratio<1, R1::den * R2::num>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2)
   {
-    // if constexpr (std::ratio_less_equal_v<R1, R2>)
-    //   return {q1.value / q2.value};
-
-    // return {q2.value / q1.value};
-
     return (q1.value * R1::num * R2::den) / q2.value;
   }
 

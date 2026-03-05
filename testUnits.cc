@@ -251,8 +251,8 @@ TEST(TP2_qtyCast, not_same_U)
 
 TEST(TP2_mult, result_wth_other_type)
 {
-  Qty<Metre, std::ratio<100>> a(1);
-  Qty<Metre> b(100);
+  Qty<Metre, std::ratio<1, 100>> a(100);
+  Qty<Metre> b(1);
   auto test = a * b;
   Qty<Unit<2, 0, 0, 0, 0, 0, 0>> test2(1);
   EXPECT_EQ(test, test2);
@@ -262,6 +262,24 @@ TEST(TP2_mult, result_wth_other_type_2)
 {
   auto test = 100000_metres * 3600_seconds;
   Qty<Unit<1, 0, 1, 0, 0, 0, 0>> test2(360000000);
+  EXPECT_EQ(test, test2);
+}
+
+TEST(TP2_mult, result_wth_other_type_3)
+{
+  Mile m(1);
+  Yard y(1760);
+  auto test = m * y;
+  Qty<Unit<2, 0, 0, 0, 0, 0, 0>> test2(1609.344 * 1609.344);
+  EXPECT_EQ(test, test2);
+}
+
+TEST(TP2_mult, result_wth_other_type_4)
+{
+  Length a(1);
+  Qty<Metre, std::ratio<500, 923047000>> b(1846094);
+  auto test = a * b;
+  Qty<Unit<2, 0, 0, 0, 0, 0, 0>> test2(1);
   EXPECT_EQ(test, test2);
 }
 
