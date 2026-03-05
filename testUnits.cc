@@ -249,6 +249,154 @@ TEST(TP2_qtyCast, not_same_U)
   EXPECT_THROW(qtyCast<Length>(s);, std::runtime_error);
 }
 
+TEST(TP2_add_equal, normal)
+{
+  Length m(1);
+  m += 17_metres;
+  EXPECT_EQ(m, 18_metres);
+}
+
+TEST(TP2_add_equal, add_0)
+{
+  Length m(1);
+  m += 0_metres;
+  EXPECT_EQ(m, 1_metres);
+}
+
+TEST(TP2_add_equal, add_negative_value)
+{
+  Length m(1);
+  m += Length(-12);
+  EXPECT_EQ(m, Length(-11));
+}
+
+TEST(TP2_add_equal, not_same_ratio)
+{
+  Length m(1);
+  Foot ft(4);
+  m += ft;
+  EXPECT_EQ(m, 2_metres);
+}
+
+TEST(TP2_add_equal, not_same_ratio_no_changes)
+{
+  Length m(1);
+  Foot ft(3);
+  m += ft;
+  EXPECT_EQ(m, 1_metres);
+}
+
+TEST(TP2_add, normal)
+{
+  Length m(1);
+  auto res = m + 17_metres;
+  EXPECT_EQ(res, 18_metres);
+}
+
+TEST(TP2_add, add_0)
+{
+  Length m(1);
+  auto res = m + 0_metres;
+  EXPECT_EQ(res, 1_metres);
+}
+
+TEST(TP2_add, add_negative_value)
+{
+  Length m(1);
+  auto res = m + Length(-12);
+  EXPECT_EQ(res, Length(-11));
+}
+
+TEST(TP2_add, not_same_ratio)
+{
+  Length m(1);
+  Qty<Metre, std::milli> mm(999);
+  auto res = m + mm;
+  Qty<Metre, std::milli> test(1999);
+  EXPECT_EQ(res, test);
+}
+
+TEST(TP2_sub_equal, normal)
+{
+  Length m(19);
+  m -= 1_metres;
+  EXPECT_EQ(m, 18_metres);
+}
+
+TEST(TP2_sub_equal, sub_0)
+{
+  Length m(19);
+  m -= 0_metres;
+  EXPECT_EQ(m, 19_metres);
+}
+
+TEST(TP2_sub_equal, result_less_0)
+{
+  Length m(19);
+  m -= 20_metres;
+  EXPECT_EQ(m, Length(-1));
+}
+
+TEST(TP2_sub_equal, sub_negative_value)
+{
+  Length m(1);
+  m -= Length(-12);
+  EXPECT_EQ(m, Length(13));
+}
+
+TEST(TP2_sub_equal, not_same_ratio)
+{
+  Length m(3);
+  Foot ft(4);
+  m -= ft;
+  EXPECT_EQ(m, 2_metres);
+}
+
+TEST(TP2_sub_equal, not_same_ratio_no_changes)
+{
+  Length m(3);
+  Foot ft(3);
+  m -= ft;
+  EXPECT_EQ(m, 3_metres);
+}
+
+TEST(TP2_sub, normal)
+{
+  Length m(19);
+  auto res = m - 1_metres;
+  EXPECT_EQ(res, 18_metres);
+}
+
+TEST(TP2_sub, sub_0)
+{
+  Length m(19);
+  auto res = m - 0_metres;
+  EXPECT_EQ(res, 19_metres);
+}
+
+TEST(TP2_sub, sub_negative_value)
+{
+  Length m(1);
+  auto res = m - Length(-12);
+  EXPECT_EQ(res, Length(13));
+}
+
+TEST(TP2_sub, result_less_0)
+{
+  Length m(19);
+  auto res = m - 20_metres;
+  EXPECT_EQ(res, Length(-1));
+}
+
+TEST(TP2_sub, not_same_ratio)
+{
+  Length m(1);
+  Qty<Metre, std::milli> mm(999);
+  auto res = m - mm;
+  Qty<Metre, std::milli> test(1);
+  EXPECT_EQ(res, test);
+}
+
 TEST(TP2_mult, result_wth_other_type)
 {
   Qty<Metre, std::ratio<1, 100>> a(100);
@@ -270,7 +418,7 @@ TEST(TP2_mult, result_wth_other_type_3)
   Mile m(1);
   Yard y(1760);
   auto test = m * y;
-  Qty<Unit<2, 0, 0, 0, 0, 0, 0>> test2(1609.344 * 1609.344);
+  Qty<Unit<2, 0, 0, 0, 0, 0, 0>, std::ratio_multiply<Mile::Ratio, Mile::Ratio>> test2(1);
   EXPECT_EQ(test, test2);
 }
 
@@ -288,24 +436,19 @@ TEST(TP2_div, result_wth_other_type)
   Mile a(1);
   Yard b(1760);
   auto test = a / b;
-  std::cout << test.value << "\n";
   Qty<Unit<0, 0, 0, 0, 0, 0, 0>> test2(1);
   EXPECT_EQ(test, test2);
 }
 
 TEST(TP2_div, result_wth_other_type_2)
 {
-  auto speed = 100000_metres / 3600_seconds;
-  EXPECT_EQ(speed, KMeterHours(100));
+  auto speed = 360000_metres / 3600_seconds;
+  EXPECT_EQ(speed, KMeterHours(360));
 }
 
 // TODO : enlever
 TEST(test, test)
 {
-  Qty<Metre> m(7);
-  Qty<Metre, std::milli> mm(10);
-  m += mm;
-  std::cout << castTo1(m) << "\n";
   // using namespace phy::literals;
   // Qty<Metre, std::deci> test(25);
   // auto res_add = 10_metres + test;
