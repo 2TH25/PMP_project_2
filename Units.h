@@ -221,7 +221,7 @@ namespace phy {
   }
 
   template<typename U1, typename R1, typename U2, typename R2>
-  Qty<details::multUnit<U1, U2>, std::ratio<R1::num * R2::num, R1::den * R2::den>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
+  Qty<details::multUnit<U1, U2>, std::ratio_multiply<R1, R2>> operator*(Qty<U1, R1> q1, Qty<U2, R2> q2)
   {
     return {q1.value * q2.value};
   }
