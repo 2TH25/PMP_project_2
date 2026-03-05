@@ -397,6 +397,7 @@ TEST(TP2_sub, not_same_ratio)
   EXPECT_EQ(res, test);
 }
 
+// TODO : make some test wth negative values
 TEST(TP2_mult, result_wth_other_type)
 {
   Qty<Metre, std::ratio<1, 100>> a(100);
