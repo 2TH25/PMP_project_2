@@ -243,6 +243,39 @@ TEST(TP2_literals, basic_literals)
   EXPECT_EQ(42_celsius, kelvin);
 }
 
+TEST(TP2_qtyCast, normal)
+{
+  auto test = qtyCast<Qty<Metre, std::milli>>(10_metres);
+  EXPECT_EQ(test, 10_metres);
+  EXPECT_EQ(10000, test.value);
+  auto test2 = qtyCast<Length>(test);
+  EXPECT_EQ(test2, 10_metres);
+  EXPECT_EQ(10, test2.value);
+}
+
+TEST(TP2_qtyCast, result_0)
+{
+  auto test = qtyCast<Qty<Metre, std::kilo>>(10_metres);
+  Qty<Metre, std::kilo> test2(0);
+  EXPECT_EQ(test, test2);
+  EXPECT_EQ(0, test.value);
+  auto test3 = qtyCast<Length>(test);
+  EXPECT_EQ(test3, 0_metres);
+  EXPECT_EQ(0, test3.value);
+}
+
+TEST(TP2_qtyCast, lose_data)
+{
+  auto test = qtyCast<Qty<Metre, std::kilo>>(1999_metres);
+  Qty<Metre, std::kilo> test2(1);
+  EXPECT_EQ(test, test2);
+  EXPECT_EQ(1, test.value);
+  auto test3 = qtyCast<Length>(test);
+  EXPECT_EQ(test3, 1000_metres);
+  EXPECT_EQ(1000, test3.value);
+}
+
+// TODO : del if compilation error
 TEST(TP2_qtyCast, not_same_U)
 {
   Qty<Second, std::deca> s(10);
@@ -397,7 +430,7 @@ TEST(TP2_sub, not_same_ratio)
   EXPECT_EQ(res, test);
 }
 
-// TODO : make some test wth negative values
+// TODO : make some test wth negative values for * and /
 TEST(TP2_mult, result_wth_other_type)
 {
   Qty<Metre, std::ratio<1, 100>> a(100);

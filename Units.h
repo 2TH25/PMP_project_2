@@ -46,7 +46,7 @@ namespace phy {
 
   namespace details
   {
-    template<class U1, class U2>
+    template<class U1, class U2> // Unit<1, 0, 0, 0, 0, 0, 0> * Unit<1, 0, 0, 0, 0, 0, 0> = Unit<2, 0, 0, 0, 0, 0, 0> = m^2
     using multUnit = Unit<
       U1::metre + U2::metre,
       U1::kilogram + U2::kilogram,
@@ -57,7 +57,7 @@ namespace phy {
       U1::candela + U2::candela
     >;
 
-    template<class U1, class U2>
+    template<class U1, class U2> // Unit<1, 0, 0, 0, 0, 0, 0> * Unit<0, 0, 1, 0, 0, 0, 0> = Unit<1, 0, -1, 0, 0, 0, 0> = m/s
     using divUnit = Unit<
       U1::metre - U2::metre,
       U1::kilogram - U2::kilogram,
@@ -203,12 +203,9 @@ namespace phy {
   std::conditional_t<std::ratio_less_v<R1, R2>, Qty<U, R1>, Qty<U, R2>> operator+(Qty<U, R1> q1, Qty<U, R2> q2)
   {
     if constexpr (std::ratio_less_v<R1, R2>)
-    {
-      Qty<U, R1> res(q1.value + qtyCast<Qty<U, R1>>(q2).value);
-      return res;
-    }
-    Qty<U, R2> res(q2.value + qtyCast<Qty<U, R2>>(q1).value);
-    return res;
+      return {q1.value + qtyCast<Qty<U, R1>>(q2).value};
+
+    return {q2.value + qtyCast<Qty<U, R2>>(q1).value};
   }
 
   template<typename U, typename R1, typename R2>
@@ -227,9 +224,9 @@ namespace phy {
   }
 
   template<typename U1, typename R1, typename U2, typename R2>
-  Qty<details::divUnit<U1, U2>, std::ratio<1, R1::den * R2::num>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2)
+  Qty<details::divUnit<U1, U2>, std::ratio<1, R1::den * R2::num>> operator/(Qty<U1, R1> q1, Qty<U2, R2> q2) // (v1 * n1/d1) / (v2 * n2/d2) = (v1 * n1 * d2)/v2 * 1/(d1 * n2)
   {
-    return (q1.value * R1::num * R2::den) / q2.value;
+    return {(q1.value * R1::num * R2::den) / q2.value};
   }
 
   namespace literals {
@@ -268,7 +265,7 @@ namespace phy {
     };
     inline Qty<Kelvin, std::ratio<1, 100>> operator ""_celsius(unsigned long long int val)
     {
-      return {static_cast<intmax_t>(val * 100 + 27315)};
+      return {static_cast<intmax_t>(val * 100 + 27315)}; // 0°C = 273,15 K
     };
 
   }
