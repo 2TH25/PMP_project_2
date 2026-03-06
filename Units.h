@@ -133,7 +133,7 @@ namespace phy {
   template<typename ResQty, typename U, typename R>
   ResQty qtyCast(Qty<U, R> quantity)
   {
-    if (!std::is_same_v<typename ResQty::Unit, U>) throw std::runtime_error("Not same Units");
+    static_assert(std::is_same_v<typename ResQty::Unit, U>, "Not same Units");
     return (quantity.value * R::num * ResQty::Ratio::den) / (R::den * ResQty::Ratio::num);
   };
 

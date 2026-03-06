@@ -20,7 +20,6 @@ namespace phy
   }
 }
 
-// TODO : essayer d'éviter dans les tests (préférer == et !=)
 template <class U, class R>
 double castTo1(Qty<U, R> q)
 {
@@ -51,26 +50,37 @@ void test_qty(const Qty<U, R> &q, const intmax_t value)
 template <typename U>
 void test_comparison()
 {
-  Qty<U, std::deci> lower(10);
+  Qty<U> negative(-4);
+  Qty<U, std::deci> lower(0);
   Qty<U, std::milli> same(10000);
   Qty<U> normal(10);
   Qty<U, std::deca> greater(10);
 
+  EXPECT_LT(negative, lower);
   EXPECT_LT(lower, normal);
-  EXPECT_TRUE(lower < same);
+  EXPECT_LT(lower, same);
+  EXPECT_LE(negative, lower);
   EXPECT_LE(lower, normal);
   EXPECT_LE(lower, same);
   EXPECT_LE(lower, lower);
   EXPECT_EQ(lower, lower);
   EXPECT_LE(same, normal);
   EXPECT_EQ(same, normal);
+  EXPECT_GT(same, negative);
+  EXPECT_GT(same, lower);
+  EXPECT_GE(same, negative);
+  EXPECT_GE(same, lower);
   EXPECT_GE(same, normal);
+  EXPECT_GT(greater, negative);
+  EXPECT_GT(greater, lower);
   EXPECT_GT(greater, normal);
   EXPECT_GT(greater, same);
-  EXPECT_GE(greater, normal);
+  EXPECT_GE(greater, negative);
+  EXPECT_GT(greater, lower);
   EXPECT_GE(greater, normal);
   EXPECT_GE(greater, greater);
   EXPECT_EQ(greater, greater);
+
 }
 
 TEST(TP2_unit, basic_units)
@@ -228,6 +238,18 @@ TEST(TP2_comparison, basic_comparison)
   test_comparison<Kelvin>();
   test_comparison<Mole>();
   test_comparison<Candela>();
+  test_comparison<Radian>();
+}
+
+TEST(TP2_comparison, derived_comparison)
+{
+  test_comparison<Volt>();
+  test_comparison<Ohm>();
+  test_comparison<Watt>();
+  test_comparison<Hertz>();
+  test_comparison<Pascal>();
+  test_comparison<Speed>();
+  test_comparison<Newton>();
 }
 
 TEST(TP2_literals, basic_literals)
@@ -275,11 +297,20 @@ TEST(TP2_qtyCast, lose_data)
   EXPECT_EQ(1000, test3.value);
 }
 
-// TODO : del if compilation error
-TEST(TP2_qtyCast, not_same_U)
+TEST(TP2_qtyCast, imperial)
 {
-  Qty<Second, std::deca> s(10);
-  EXPECT_THROW(qtyCast<Length>(s);, std::runtime_error);
+  auto test = qtyCast<Yard>(Foot(5280));
+  Yard test2(1760);
+
+  auto test3 = qtyCast<Mile>(test);
+  Mile test4(1);
+
+  EXPECT_EQ(test, test2);
+  EXPECT_EQ(1760, test.value);
+  EXPECT_EQ(test3, test4);
+  EXPECT_EQ(1, test3.value);
+  EXPECT_EQ(test, test3);
+  EXPECT_EQ(test2, test4);
 }
 
 TEST(TP2_add_equal, normal)
@@ -465,6 +496,44 @@ TEST(TP2_mult, result_wth_other_type_4)
   EXPECT_EQ(test, test2);
 }
 
+TEST(TP2_mult, with_0)
+{
+  auto test = 5_metres * 0_metres;
+  Qty<Unit<2, 0, 0, 0, 0, 0, 0>> test2(0);
+  EXPECT_EQ(test, test2);
+}
+
+TEST(TP2_mult, distance)
+{
+  MeterSecond test(10);
+  Time test2(10);
+
+  auto test3 = test * test2;
+  Length test4(100);
+  EXPECT_EQ(test3, test4);
+}
+
+TEST(TP2_mult, couple)
+{
+  Force test(10);
+  Length test2(10);
+
+  auto test3 = test * test2;
+  Qty<Unit<2, 1, -2, 0, 0, 0, 0>> test4(100);
+  EXPECT_EQ(test3, test4);
+}
+
+
+TEST(TP2_mult, negative)
+{
+  Length test(-2);
+  Length test2(3);
+
+  auto test3 = test * test2;
+  Qty<Unit<2, 0, 0, 0, 0, 0, 0>> test4(-6);
+  EXPECT_EQ(test3, test4);
+}
+
 TEST(TP2_div, result_wth_other_type)
 {
   Mile a(1);
@@ -480,38 +549,44 @@ TEST(TP2_div, result_wth_other_type_2)
   EXPECT_EQ(speed, KMeterHours(360));
 }
 
-// TODO : enlever
-TEST(test, test)
+TEST(TP2_div, same_unit)
 {
-  // using namespace phy::literals;
-  // Qty<Metre, std::deci> test(25);
-  // auto res_add = 10_metres + test;
-  // std::cout << res_add.value << "\n";
+  Length test(10);
+  Length test2(5);
 
-  // auto res_sub = 10_metres - test;
-  // std::cout << res_sub.value << "\n";
+  auto test3 = test / test2;
+  Qty<Unit<0, 0, 0, 0, 0, 0, 0>> test4(2);
+  EXPECT_EQ(test3, test4);
+}
 
-  // auto res_mult = 10_metres * test;
-  // std::cout << res_mult.value << "\n";
+TEST(TP2_div, acceleration)
+{
+  Force test(10);
+  Mass test2(2);
 
-  // auto res_div = 10_metres / test;
-  // std::cout << res_div.value << "\n";
+  auto test3 = test / test2;
+  Qty<Unit<1, 0, -2, 0, 0, 0, 0>> test4(5);
+  EXPECT_EQ(test3, test4);
+}
 
-  // auto res_mult_test = 2000_metres * 3000_metres;
-  // std::cout << res_mult_test.value << "\n";
+TEST(TP2_div, imperial)
+{
+  Mile test(10);
+  Time test2(2);
 
-  // auto test_mult_1 = Qty<Metre>(5);
-  // auto test_mult_2 = Qty<Second>(3);
-  // auto res_mult_test_ratio = test_mult_1 / test_mult_2;
-  // std::cout << res_mult_test_ratio.value << "\n";
-  // auto res_1 = details::castTo1(res_mult_test_ratio);
-  // std::cout << res_1 << "\n";
+  auto test3 = test / test2;
+  Qty<Unit<1, 0, -1, 0, 0, 0, 0>, std::ratio<16093440, 10000>> test4(5);
+  EXPECT_EQ(test3, test4);
+}
 
-  // Qty<Metre> test_add_operator_1(5);
-  // test_add_operator_1 += test_add_operator_1;
-  // std::cout << test_add_operator_1.value << "\n";
-  // test_add_operator_1 -= test_add_operator_1;
-  // std::cout << test_add_operator_1.value << "\n";
+TEST(TP2_div, negative)
+{
+  Length test(-10);
+  Length test2(2);
+
+  auto test3 = test / test2;
+  Qty<Unit<0, 0, 0, 0, 0, 0, 0>> test4(-5);
+  EXPECT_EQ(test3, test4);
 }
 
 int main(int argc, char *argv[])
